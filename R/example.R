@@ -1,11 +1,16 @@
+#!R --vanilla
+require(readODS)
+setwd("~/tmp")
+script.dir <- "~/proyectos/IUCN/RLE-xml-db/R"
+source(sprintf("%s/RbaseXClient.R",script.dir))
 
-source("RbaseXClient.R")
 
-Session <- BasexClient$new("localhost", 1984, "admin", "admin")
+
+Session <- BasexClient$new("localhost", 1984, "jferrer", readLines("~/.basexpwd"))
 print(Session$command("info")$result)
 
 
-test <- Session$create("init", "")
+## deletes and inserts only work when the database is not opened by another process
 
    test <- Session$command("OPEN init")
 if (!test$success) {
@@ -16,9 +21,14 @@ if (!test$success) {
     cat("Could not create database\n")
   }
 }
+## this can be used to delete nodes in basexgui, if there are no other connections to the database:
+##delete node //Reference
+
+Ref.list <- read_ods("~/proyectos/IUCN/RLE-xml-db/input/RLE assessment summary tables.ods",sheet=1)
 
 MinimumRef <- "
 element Reference {
+   attribute id {'%1$s'},
   element Ref-information {
     element ref-label { '%1$s' },
     element ref-titles {     element ref-title { attribute lang {'%2$s'}, '%3$s' }
@@ -26,13 +36,26 @@ element Reference {
   }
 }
 "
-ref.label <- ""
-ref.title <- ""
-sprintf(MinimumRef,ref.label,"en",ref.title)
+for (k in 1:nrow(Ref.list)) {
+   ref.label <- Ref.list$reference_code[k]
+   ref.title <- Ref.list$Title[k]
+   ref.lang <- Ref.list$language[k]
+   if (any(c(ref.label,ref.title,ref.lang) %in% NA)) {
+      cat(sprintf("Error with %s\n",k))
+   }   else {
+
+   Session$command(sprintf("xquery let $up := %s
+    return
+  insert node $up as last into db:open('init')//References",
+   sprintf(MinimumRef,ref.label,ref.lang,ref.title)
+   ))$result
+
+   }
+}
 
 ## ADD a node with basic information:
-require(readODS)
-chile <- read_ods("../input/Summary_RLE_database.ods",sheet=2)
+
+chile <- read_ods("~/proyectos/IUCN/RLE-xml-db/input/Summary_RLE_database.ods",sheet=2)
 for (k in 1:nrow(chile)) {
   CS.name <- chile[k,3]
   CS.id <- sprintf("%s_%s",chile[k,"Reference"],chile[k,"ID"])
@@ -42,7 +65,7 @@ for (k in 1:nrow(chile)) {
     attribute name { '%1$s' },
     attribute id { '%2$s' },
     element Case-Study-Names {
-      element Case-Study-Name { attribute lang { 'en' }, '%1$s' }
+      element Case-Study-Name { attribute lang { 'es' }, '%1$s' }
     },
     element Assessment-information {
       element Reference-label { '%4$s' }
