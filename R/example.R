@@ -17,6 +17,18 @@ if (!test$success) {
   }
 }
 
+MinimumRef <- "
+element Reference {
+  element Ref-information {
+    element ref-label { '%1$s' },
+    element ref-titles {     element ref-title { attribute lang {'%2$s'}, '%3$s' }
+     }
+  }
+}
+"
+ref.label <- ""
+ref.title <- ""
+sprintf(MinimumRef,ref.label,"en",ref.title)
 
 ## ADD a node with basic information:
 require(readODS)
