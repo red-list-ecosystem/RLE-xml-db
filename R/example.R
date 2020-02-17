@@ -89,6 +89,15 @@ for (k in 1:nrow(chile)) {
 
 }
 
+## example xquery to produce a simple output:
+Session$command(sprintf("xquery
+for $ref in db:open('init')//Reference/@id
+let $k := count(//Case-Study/Assessment-information[Reference-label=$ref])
+order by $ref
+return (
+    <a>{$ref}</a>,<b>{$k}</b>
+)"))
+
 
 
 ##Session$command("xquery /")$result
