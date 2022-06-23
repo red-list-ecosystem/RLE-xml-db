@@ -32,6 +32,14 @@ pip install pybtex
 #pip install postgis
 ```
 
+Install python libraries for working with google docs:
+
+```{bash}
+pip install google_spreadsheet
+pip install google-auth-oauthlib
+
+```
+
 Start the jupyter lab interface:
 ```sh
 cd ~/proyectos/IUCN-RLE/RLE-xml-db
